@@ -5,3 +5,6 @@
 
 - Optimized Union-Find
   - Command: <code>python3 ./cclabel \<image_path></code>
+
+- OpenCV
+  - Command: <code>python3 ./cclabel \<image_path></code>

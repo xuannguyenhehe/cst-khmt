@@ -2,3 +2,5 @@ pandas
 haversine
 networkx
 matplotlib
+basemap
+openpyxl

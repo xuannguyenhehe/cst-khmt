@@ -1,17 +1,15 @@
 import pandas as pd 
+import networkx as nx
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 
 raw_data = pd.read_excel("input.xlsx")
 raw_data
-
-import networkx as nx
 
 df = raw_data[["distance", "Source", "Destination"]]
 df.Source = df.Source.astype(str)
 df.Destination = df.Destination.astype(str)
 df.head()
-
-import networkx as nx
-import matplotlib.pyplot as plt
 
 G = nx.DiGraph()
 for index, row in df.iterrows():
@@ -21,9 +19,19 @@ for index, row in df.iterrows():
   G.add_edge(source, target, length=distance, weight=distance)
 
 def k_shortest_paths(G, source, target, k=1, weight='weight'):
+    m = Basemap(
+        projection='merc',
+        llcrnrlon=-180,
+        llcrnrlat=10,
+        urcrnrlon=-50,
+        urcrnrlat=70,
+        lat_ts=0,
+        resolution='l',
+        suppress_ticks=True)
+
     if source == target:
         return ([0], [[source]]) 
-       
+    
     length, path = nx.single_source_dijkstra(G, source, target, weight=weight)
     if target not in path:
         raise nx.NetworkXNoPath("node %s not reachable from %s" % (source, target))
@@ -36,7 +44,7 @@ def k_shortest_paths(G, source, target, k=1, weight='weight'):
     ls_potential_length = []
     ls_potential_path = []
 
-    for index_solution in range(1, k):
+    for _ in range(1, k):
         lastest_path = paths[-1]
         for edge in list(zip(lastest_path[:-1], lastest_path[1:])):
             first_node = edge[0]
@@ -78,70 +86,73 @@ def k_shortest_paths(G, source, target, k=1, weight='weight'):
         
     for index_result, result in enumerate(list(zip(lengths, paths))):
         length, path = result
-        # key_G = nx.DiGraph()
-        # key_index = 0
-        # for first_node, second_node in list(zip(path[:-1], path[1:])):
-        #     edge_attr = G[first_node][second_node]
-        #     key_G.add_edge(first_node, second_node, length=edge_attr["length"], weight=edge_attr["weight"])
+        key_G = nx.DiGraph()
+        for first_node, second_node in list(zip(path[:-1], path[1:])):
+            edge_attr = G[first_node][second_node]
+            key_G.add_edge(first_node, second_node, length=edge_attr["length"], weight=edge_attr["weight"])
           
-        # # nx.draw(key_G, with_labels = True)
-        # edge_labels = nx.get_edge_attributes(key_G, 'label')
-        # pos = {}
-        # for index, row in raw_data.iterrows():
-        #     long_value = row["source_long"]
-        #     lat_value = row["source_lat"]
-        #     source = str(row["Source"])
-        #     if source in path:
-        #         mx, my = m([float(long_value)], [float(lat_value)])
-        #         pos[source] = (mx[0], my[0])
-        #     if index == len(raw_data) - 1:
-        #         long_value = row["dest_long"]
-        #         lat_value = row["dest_lat"]
-        #         source = str(row["Destination"])
-        #         mx, my = m([float(long_value)], [float(lat_value)])
-        #         pos[source] = (mx[0], my[0])
-        # plt.figure(figsize = (10, 5))
-        # nx.draw_networkx_nodes(
-        #     G = key_G, 
-        #     pos = pos, 
-        #     node_color = 'r', 
-        #     alpha = 0.8, 
-        #     node_size = 400,
-        # )
-        # nx.draw_networkx_edges(G = key_G, pos = pos, edge_color='black', alpha=0.2, arrows = True)
-        # nx.draw_networkx_labels(key_G, pos, font_size=10)
-        # plt.savefig(str(index_result) + '.png')
-        # plt.show() 
+        pos = {}
+        for index, row in raw_data.iterrows():
+            long_value = row["source_long"]
+            lat_value = row["source_lat"]
+            source = str(row["Source"])
+            if source in path:
+                mx, my = m([float(long_value)], [float(lat_value)])
+                pos[source] = (mx[0], my[0])
+            if index == len(raw_data) - 1:
+                long_value = row["dest_long"]
+                lat_value = row["dest_lat"]
+                source = str(row["Destination"])
+                mx, my = m([float(long_value)], [float(lat_value)])
+                pos[source] = (mx[0], my[0])
+        plt.figure(figsize = (10, 5))
+        nx.draw_networkx_nodes(
+            G = key_G, 
+            pos = pos, 
+            node_color = 'r', 
+            alpha = 0.8, 
+            node_size = 400,
+        )
+        nx.draw_networkx_edges(G = key_G, pos = pos, edge_color='black', alpha=0.2, arrows = True)
+        nx.draw_networkx_labels(key_G, pos, font_size=10)
+        plt.savefig(str(index_result) + '.png')
+        plt.show() 
         print(length, path)
-        # print("==============================")
-        # break
+        print("==============================")
+        break
         
+k_shortest_paths(G, '1', '15', 14, "weight")
 
-k_shortest_paths(G, '1.0', '15.0', 14, "weight")
+# m = Basemap(
+#     projection='merc',
+#     llcrnrlon=-180,
+#     llcrnrlat=10,
+#     urcrnrlon=-50,
+#     urcrnrlat=70,
+#     lat_ts=0,
+#     resolution='l',
+#     suppress_ticks=True)
 
-
-pos = {}
-for index, row in raw_data.iterrows():
-    long_value = row["source_long"]
-    lat_value = row["source_lat"]
-    source = str(row["Source"])
-    mx, my = m(long_value, lat_value)
-    pos[source] = (long_value, lat_value)
-    if index == len(raw_data) - 1:
-        long_value = row["dest_long"]
-        lat_value = row["dest_lat"]
-        source = str(row["Destination"])
-        mx, my = m(float(long_value), float(lat_value))
-        pos[source] = (float(long_value), float(lat_value))
-plt.figure(figsize = (20, 12))
-nx.draw_networkx_nodes(
-    G = G, 
-    pos = pos, 
-    # node_list = G.nodes(), 
-    node_color = 'r', 
-    alpha = 0.8, 
-    node_size = 400,
-    # label=True
-)
-nx.draw_networkx_edges(G = G, pos = pos, edge_color='black', alpha=0.2, arrows = True)
-nx.draw_networkx_labels(G, pos, font_size=10)
+# pos = {}
+# for index, row in raw_data.iterrows():
+#     long_value = row["source_long"]
+#     lat_value = row["source_lat"]
+#     source = str(row["Source"])
+#     mx, my = m(long_value, lat_value)
+#     pos[source] = (long_value, lat_value)
+#     if index == len(raw_data) - 1:
+#         long_value = row["dest_long"]
+#         lat_value = row["dest_lat"]
+#         source = str(row["Destination"])
+#         mx, my = m(float(long_value), float(lat_value))
+#         pos[source] = (float(long_value), float(lat_value))
+# plt.figure(figsize = (20, 12))
+# nx.draw_networkx_nodes(
+#     G = G, 
+#     pos = pos, 
+#     node_color = 'r', 
+#     alpha = 0.8, 
+#     node_size = 400,
+# )
+# nx.draw_networkx_edges(G = G, pos = pos, edge_color='black', alpha=0.2, arrows = True)
+# nx.draw_networkx_labels(G, pos, font_size=10)

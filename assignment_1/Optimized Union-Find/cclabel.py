@@ -1,6 +1,17 @@
+#!/usr/bin/python
+
+#
+# Implements 8-connectivity connected component labeling
+#
+# Algorithm obtained from "Optimizing Two-Pass Connected-Component Labeling
+# by Kesheng Wu, Ekow Otoo, and Kenji Suzuki
+#
+
 from PIL import Image
+from PIL import ImageDraw
 
 import sys
+import math
 import random
 from itertools import product
 from union_find import *
@@ -104,7 +115,7 @@ def run(img):
     output_img = Image.new("RGB", (width, height))
     outdata = output_img.load()
 
-    print(labels)
+    # print(labels)
 
     for (x, y) in labels:
 
@@ -126,13 +137,14 @@ def run(img):
 
 
 def main():
+    import time
+    start_time = time.time()
     # Open the image
-    img = Image.open(sys.argv[1])
+    origin_img = Image.open(sys.argv[1])
 
     # Threshold the image, this implementation is designed to process b+w
     # images only
-    img = img.point(lambda p: p > 190 and 255)
-    img = img.convert('L')
+    img = origin_img.convert('L').point(lambda p: p > 190 and 255 or 0)
 
     # labels is a dictionary of the connected component data in the form:
     #     (x_coordinate, y_coordinate) : component_id
@@ -142,9 +154,11 @@ def main():
     #
     # output_image is just a frivolous way to visualize the components.
     (labels, output_img) = run(img)
-
-    print(output_img)
-
+    print('Algorithms: Optimizez Union-Find')
+    print('Image size: {}'.format(origin_img.size))
+    print('Number of Label: {}'.format(len(set(labels.values()))))
+    print('Processing Time:', time.time() - start_time)
+    
     output_img.show()
 
 

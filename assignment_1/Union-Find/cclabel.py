@@ -2,10 +2,7 @@ import numpy as np
 from PIL import Image
 from union_find import UnionFind
 import random
-import argparse
-import os
-import matplotlib.pyplot as plt
-
+import time
 
 CONNECTIVITY_4 = 4
 CONNECTIVITY_8 = 8
@@ -95,7 +92,7 @@ def connected_component_labelling(bool_input_image, connectivity_type=CONNECTIVI
     #         if pixel_value > 0:  # Foreground pixel
     #             labelled_image[y, x] = final_labels[pixel_value]
 
-    return labelled_image
+    return labelled_image, new_label_number - 1
 
 
 # Private functions ############################################################################
@@ -173,62 +170,31 @@ def print_image(img, width, height):
 
 
 def image_to_2d_bool_array(image):
-    image = image.point(lambda p: p > 190 and 255)
-    im2 = image.convert('L')
+    im2 = image.convert('L').point(lambda p: p > 127 and 255 or 0)
     arr = np.asarray(im2)
-    arr = arr != 255 if arr[0][0] != 255 else arr == 255
+    arr = arr != 255 
 
     return arr
 
 
 # Run from Terminal ############################################################################
-def parse_args():
-    """Defines all arguments.
-    Returns
-    -------
-    args object that contains all the params
-    """
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description='Read directory of list of image inputs')
-    parser.add_argument('--root', type=str, help='path to folder containing images.')
-    parser.add_argument('--connectivity_type', type=int, default=CONNECTIVITY_8, help='path to folder containing images.')
-    parser.add_argument('--exts', nargs='+', default=['.jpeg', '.jpg', '.png'],
-                    help='list of acceptable image extensions.')
-    args = parser.parse_args()
-    args.root = os.path.abspath(args.root)
-    return args
-
-def read_image_paths(dir: str, exts: list[str]) -> list[str]:
-    """Read path of images from dir input
-
-    Args:
-        dir (str): directory of input
-
-    Returns:
-        list[str]: list of image inputs
-    """
-    ls_image_paths = []
-    for path, _, files in os.walk(dir, followlinks=True):
-        for name_image in files:
-            fpath = os.path.join(path, name_image)
-            suffix = os.path.splitext(name_image)[1].lower()
-            if os.path.isfile(fpath) and (suffix in exts):
-                ls_image_paths.append(fpath)
-        break 
-    return ls_image_paths
-
-
 if __name__ == "__main__":
-    args = parse_args()
-    connectivity_type = args.connectivity_type
+    import sys
+    if len(sys.argv) > 1:  # At least 1 command line parameter
+        start_time = time.time()
+        image_path = str(sys.argv[1])
 
-    ls_image_paths = read_image_paths(dir=args.root, exts=args.exts)
-    for image_path in ls_image_paths:
+        if (len(sys.argv) > 2):  # At least 2
+            connectivity_type = int(sys.argv[2])
+        else:
+            connectivity_type = CONNECTIVITY_8
+
         image = Image.open(image_path)
-        bool_image = image_to_2d_bool_array(image) # Conver to white background, black object
-        print(bool_image[0])
-        plt.imshow(bool_image, cmap = 'gray')
-        plt.show()
-        # result = connected_component_labelling(bool_image, connectivity_type)
-        # print_image(result, len(result[0]), len(result))
+        bool_image = image_to_2d_bool_array(image)
+        result, label_number = connected_component_labelling(bool_image, connectivity_type)
+        
+        print('Algorithms: Union-Find')
+        print('Image size: {}'.format(image.size))
+        print('Number of Label: {}'.format(label_number))
+        print('Processing Time:', time.time() - start_time)
+        print_image(result, len(result[0]), len(result))
