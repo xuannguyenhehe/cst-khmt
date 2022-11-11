@@ -4,7 +4,7 @@ from union_find import UnionFind
 import random
 import argparse
 import os
-# from matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 CONNECTIVITY_4 = 4
@@ -176,7 +176,7 @@ def image_to_2d_bool_array(image):
     image = image.point(lambda p: p > 190 and 255)
     im2 = image.convert('L')
     arr = np.asarray(im2)
-    arr = arr != 255 
+    arr = arr != 255 if arr[0][0] != 255 else arr == 255
 
     return arr
 
@@ -214,8 +214,7 @@ def read_image_paths(dir: str, exts: list[str]) -> list[str]:
             fpath = os.path.join(path, name_image)
             suffix = os.path.splitext(name_image)[1].lower()
             if os.path.isfile(fpath) and (suffix in exts):
-                image_path = os.path.join(fpath, name_image)
-                ls_image_paths.append(image_path)
+                ls_image_paths.append(fpath)
         break 
     return ls_image_paths
 
@@ -227,7 +226,9 @@ if __name__ == "__main__":
     ls_image_paths = read_image_paths(dir=args.root, exts=args.exts)
     for image_path in ls_image_paths:
         image = Image.open(image_path)
-        bool_image = image_to_2d_bool_array(image)
-        plt.show(bool_image)
+        bool_image = image_to_2d_bool_array(image) # Conver to white background, black object
+        print(bool_image[0])
+        plt.imshow(bool_image, cmap = 'gray')
+        plt.show()
         # result = connected_component_labelling(bool_image, connectivity_type)
         # print_image(result, len(result[0]), len(result))
