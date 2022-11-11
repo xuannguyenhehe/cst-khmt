@@ -8,6 +8,7 @@ df1[['Lat', 'Long']] = df1['Long'].str.split(',', 1, expand=True)
 
 df2 = pd.DataFrame(sheet2)
 
+
 # Join two table 
 result = pd.merge(df2, df1, how="left", left_on="Source", right_on="STT")
 result = result.drop(columns=['STT'])
