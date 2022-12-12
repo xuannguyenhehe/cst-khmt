@@ -7,11 +7,16 @@ def preprocess(path_edges: str, column_name_first: str, column_name_second: str,
     df_edge = df_edge[[column_name_first, column_name_second]]
     df_edge = df_edge.dropna()
     df_node = pd.read_csv(path_nodes)
+    dic = {
+        'st_id_x': ['A', 'A', 'B', 'B', 'D', 'D'],
+        'st_id_y': ['B', 'C', 'C', 'D', 'E', 'F'],
+    }
+    df_edge = pd.DataFrame(dic)
     return df_edge
 
 if __name__ == "__main__":
-    path_edges = 'dataset/artist_spotify_edge.csv'
-    path_nodes = 'dataset/artist_spotify_node.csv'
+    path_edges = 'assignment_3/dataset/artist_spotify_edge.csv'
+    path_nodes = 'assignment_3/dataset/artist_spotify_node.csv'
 
     df_edge = preprocess(path_edges, 'st_id_x', 'st_id_y', path_nodes)    
     G = nx.from_pandas_edgelist(df_edge, 'st_id_x', 'st_id_y')
