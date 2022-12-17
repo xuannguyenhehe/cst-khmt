@@ -20,9 +20,9 @@ def preprocess(path_edges: str, column_name_first: str, column_name_second: str)
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:  
-        type_algorithm = str(sys.argv[1]) 
-
-    path_edges = 'dataset/artist_spotify_edge.csv'
+        type_algorithm = str(sys.argv[3])
+        path_edges = str(sys.argv[2])
+        path_nodes = str(sys.argv[1]) 
     # type_algorithm = "louvain"
     df_edge = preprocess(path_edges, 'st_id_x', 'st_id_y')    
     internal_time = None
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     modularity = get_modularity(nx_G, list_clusters)
     num_cluster = len(list_clusters)
-    number_badly_disconnected_communities, ls_num_internal_edges, ls_num_external_edges \
+    number_badly_disconnected_communities, ls_num_internal_edges, ls_num_external_edges, relationships \
         = get_statistic(nx_G, list_clusters)
     average_num_internal_edges = sum(ls_num_internal_edges) / len(ls_num_internal_edges)
     average_num_external_edges = sum(ls_num_external_edges) / len(ls_num_external_edges)
@@ -55,3 +55,8 @@ if __name__ == "__main__":
     print("average num internal_edges:", average_num_internal_edges)
     print("average num external_edges:", average_num_external_edges)
     print("=============",type_algorithm,"=============")
+
+    df_nodes = pd.read_csv(path_nodes)
+    dict_communities = {node: index_community for index_community, community in enumerate(list_clusters) for node in community}
+    df_nodes["index_community"] = df_nodes['st_id'].map(dict_communities)
+    df_nodes.to_csv("result/" + type_algorithm + ".csv", index=False)

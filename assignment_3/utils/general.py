@@ -5,6 +5,7 @@ def get_statistic(G, communities):
     number_badly_disconnected_communities = 0
     ls_num_internal_edges = [0 for _ in range(len(ls_communities))]
     ls_num_external_edges = [0 for _ in range(len(ls_communities))]
+    dict_relationship = {}
     for u, v in G.edges:
         for index_community, community in enumerate(communities):
             if u in community and v in community:
@@ -12,12 +13,21 @@ def get_statistic(G, communities):
                 ls_num_internal_edges[index_community] += 1
                 # break
             elif u in community or v in community:
+                if u not in dict_relationship:
+                    dict_relationship[u] = [v]
+                elif v not in dict_relationship[u]:
+                    dict_relationship[u].append(v)
+
+                if v not in dict_relationship:
+                    dict_relationship[v] = [u]
+                elif u not in dict_relationship[v]:
+                    dict_relationship[v].append(u)
                 ls_num_external_edges[index_community] += 1
 
     for index, checked_community in enumerate(ls_communities):
         if len(checked_community) > 0 and len(communities[index]) > 1:
             number_badly_disconnected_communities += 1
-    return number_badly_disconnected_communities, ls_num_internal_edges, ls_num_external_edges
+    return number_badly_disconnected_communities, ls_num_internal_edges, ls_num_external_edges, dict_relationship
 
 def get_modularity(G, communities, weight="weight", resolution=1):
     if not isinstance(communities, list):
@@ -45,3 +55,10 @@ def get_modularity(G, communities, weight="weight", resolution=1):
         return L_c / m - resolution * out_degree_sum * in_degree_sum * norm
 
     return sum(map(community_contribution, communities))
+
+# def get_eda(list_clusters: set, df_nodes):
+#     for cluster in list_clusters:
+#         ls_node = list(cluster)
+#         df_node = df_nodes[df_nodes["st_id"].isin(ls_node)]
+#         df_
+
